@@ -23,6 +23,8 @@ The summary line contains chromosomal position and size information about the al
     Blastz score -- Different blastz scoring matrices are used for different organisms. See the README.txt file in the alignments directory for scoring information specific to a pair of alignments. 
 """
 
+def is_header(line) :
+  return(line[0:1] == "#")
 
 def is_start_block(line):
   fields=line.split()
@@ -71,7 +73,7 @@ def process_block(NetAxt, line, achromsizes, out):
       out.write(PChr + '\t' + str(cg_pstart) + '\t'+ str(cg_pstart+2) +'\t' + \
                 seq1[s] + seq1[e-1] + '\t+\t' + \
                 AChr + '\t' + str(cg_astart) + '\t'+ str(cg_aend) + '\t' + \
-                seq2[s] + seq2[e-1] +  '\t' + AStrand + '\n')  
+                seq2[s] + seq2[e-1] +  '\t' + AStrand + '\t' + Bscore + '\n')  
       i = e
     else: return
   return 
@@ -97,6 +99,8 @@ def main():
   axtnet = open(args.AxtNet, 'r')
     
   line = axtnet.readline()
+  while is_header(line):
+    line = axtnet.readline()
 
   while is_start_block(line) :
     process_block(axtnet, line, achromsizes, out)
