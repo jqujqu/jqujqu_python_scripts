@@ -39,10 +39,9 @@ def read_block(NetAxt):
   return[seq1, seq2]
 
 
-def process_block(NetAxt, line, achromsizes, out):
+def process_block(NetAxt, line, out):
   [seq1, seq2] =  read_block(NetAxt)
   [AlignNum, PChr, PStart, PEnd, AChr, AStart, AEnd, AStrand, Bscore] = line.split()
-  achrsize = achromsizes[AChr]
   pstart = int(PStart)
   pend = int(PEnd)
   astart = int(AStart)
@@ -69,15 +68,8 @@ def main():
     
   parser =  argparse.ArgumentParser(description='Get regions in Primary species that is mappable to Aligning species')
   parser.add_argument("-o", "--outfile", help="name of output file (BED format)")
-  parser.add_argument("-s", "--chromsize", help="chrom size file for the aligning species")
   parser.add_argument('AxtNet', help='<PSpecies>.<ASpecies>.net.axt file')
   args = parser.parse_args()
-
-  achromsizes = {}
-  with open(args.chromsize) as sizefile:
-    for sizeline in sizefile:
-      (key, val) = sizeline.split()
-      achromsizes[key] = int(val)
 
   out = open(args.outfile, 'w')
   axtnet = open(args.AxtNet, 'r')
@@ -87,7 +79,7 @@ def main():
     line = axtnet.readline()
 
   while is_start_block(line) :
-    process_block(axtnet, line, achromsizes, out)
+    process_block(axtnet, line, out)
     line = axtnet.readline()
 
   out.close()
