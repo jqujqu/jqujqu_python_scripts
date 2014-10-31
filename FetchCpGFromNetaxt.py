@@ -39,7 +39,7 @@ def read_block(NetAxt):
   return[seq1, seq2]
 
 
-def process_block(NetAxt, line, achromsizes, out):
+def process_block(NetAxt, line, achromsizes, out, dinuc):
   [seq1, seq2] =  read_block(NetAxt)
   [AlignNum, PChr, PStart, PEnd, AChr, AStart, AEnd, AStrand, Bscore] = line.split()
   achrsize = achromsizes[AChr]
@@ -71,10 +71,44 @@ def process_block(NetAxt, line, achromsizes, out):
 
       assert(cg_astart >= 0)
       if( cg_aend > cg_astart):
-        out.write(Bscore + '\t' + PChr + '\t' + str(cg_pstart) + '\t'+ str(cg_pstart+2) +'\t' + \
-                  seq1[s] + seq1[e-1] + '\t+\t' + \
-                  AChr + '\t' + str(cg_astart) + '\t'+ str(cg_aend) + '\t' + \
-                seq2[s] + seq2[e-1] +  '\t' + AStrand '\n')  
+        pstrandout = '+'
+        astrandout = AStrand
+        if(dinuc):
+          pstartout = str(cg_pstart)
+          pendout = str(cg_pstart+2)
+          pseqout = seq1[s] + seq1[e-1]
+          astartout = str(cg_astart)
+          aendout = str(cg_aend)
+          aseqout =  seq2[s] + seq2[e-1] 
+        else: 
+          pstartout = str(cg_pstart)
+          pendout = str(cg_pstart+1)
+          astrandout = '+'  # astart are coordinates for the C nucleotide in + strand when possible
+          if(AStrand == '+' and seq2[s]!='-'): 
+            pseqout = seq1[s] 
+            astartout = str(cg_astart)
+            aendout = str(cg_astart + 1)
+            aseqout =  seq2[s] 
+          elif(AStrand == '+' and seq2[s]=='-'): 
+            pseqout = seq1[e-1] 
+            astartout = str(cg_aend-1)
+            aendout = str(cg_aend)
+            aseqout = seq2[e-1] 
+          elif(AStrand == '-' and seq2[e-1]!='-'): 
+            pseqout = seq1[e-1] 
+            astartout = str(cg_astart)
+            aendout = str(cg_astart+1)
+            aseqout = seq2[e-1] 
+          elif(AStrand == '-' and seq2[e-1]=='-'): 
+            pseqout = seq1[s] 
+            astartout = str(cg_aend-1)
+            aendout = str(cg_aend)
+            aseqout = seq2[s]   
+
+        out.write(Bscore + '\t' + PChr + '\t' + pstartout + '\t'+ pendout +'\t' + \
+                  pseqout + '\t+\t' + \
+                  AChr + '\t' + astartout + '\t'+ aendout + '\t' + \
+                  aseqout + '\t'+ astrandout + '\n')
       i = e
     else: return
   return 
@@ -87,6 +121,8 @@ def main():
   parser =  argparse.ArgumentParser(description='Process net.axt file to map CpGs.')
   parser.add_argument("-o", "--outfile", help="name of output file")
   parser.add_argument("-s", "--chromsize", help="chrom size file for the aligning species")
+  parser.add_argument("--dinuc", help="output dinucleotide (CG) mapping location instead of single nucleotide (C)",
+                      action="store_true")
   parser.add_argument('AxtNet', help='<PSpecies>.<ASpecies>.net.axt file')
   args = parser.parse_args()
 
@@ -104,7 +140,7 @@ def main():
     line = axtnet.readline()
 
   while is_start_block(line) :
-    process_block(axtnet, line, achromsizes, out)
+    process_block(axtnet, line, achromsizes, out, args.dinuc)
     line = axtnet.readline()
 
   out.close()
