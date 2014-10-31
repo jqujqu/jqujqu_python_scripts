@@ -70,11 +70,11 @@ def process_block(NetAxt, line, achromsizes, out):
         cg_aend = astart + e - 2 -gap2e
 
       assert(cg_astart >= 0)
-      if( seq2[s] + seq2[e-1] != '--'):
-        out.write(PChr + '\t' + str(cg_pstart) + '\t'+ str(cg_pstart+2) +'\t' + \
+      if( cg_aend > cg_astart):
+        out.write(Bscore + '\t' + PChr + '\t' + str(cg_pstart) + '\t'+ str(cg_pstart+2) +'\t' + \
                   seq1[s] + seq1[e-1] + '\t+\t' + \
                   AChr + '\t' + str(cg_astart) + '\t'+ str(cg_aend) + '\t' + \
-                seq2[s] + seq2[e-1] +  '\t' + AStrand + '\t' + Bscore + '\n')  
+                seq2[s] + seq2[e-1] +  '\t' + AStrand '\n')  
       i = e
     else: return
   return 
