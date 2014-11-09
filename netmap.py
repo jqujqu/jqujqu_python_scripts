@@ -7,7 +7,7 @@ import argparse
 def parse_methcount(line):
   a = line.split()
   if a[2] == "+" :
-    return [a[0], a[1], a[2], a[3], a[4], a[5]]
+    return a
   else :
     col4 = a[3].split(":")
     return [a[0], a[1], a[5], col4[0], a[4], col4[1]]
@@ -33,7 +33,7 @@ def main():
     [s_chr, s_start, s_strand, s_txt, m, cov] =  parse_methcount(methline)
     [schr, sstart, send, sstrand, tchr, tstart, tend, tstrand] = netline.split() 
     if(s_chr == schr and s_start == sstart):
-      out.write(tchr + '\t' + sstart + '\t' + tstrand + '\t' + s_txt +  \
+      out.write(tchr + '\t' + tstart + '\t' + tstrand + '\t' + s_txt +  \
                 '\t' + m + '\t' + cov + '\n')
       methline = meth.readline()
       netline = netmap.readline()
