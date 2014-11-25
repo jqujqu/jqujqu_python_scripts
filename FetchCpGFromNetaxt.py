@@ -63,11 +63,11 @@ def process_block(NetAxt, line, achromsizes, out, dinuc):
       cg_pstart = pstart + s - 1 -gap1s
       alignmatch =  re.search('cg', seq2[s]+ seq2[e-1], re.IGNORECASE)
       if AStrand == '-' : 
-        cg_astart = achrsize - (astart + e - gap2e)   # BED file tradition coordinates for di-nucleotide
-        cg_aend = achrsize - (astart + s - gap2s)   
+        cg_astart = achrsize - (astart + e - gap2e) +1   # BED file tradition coordinates for di-nucleotide
+        cg_aend = achrsize - (astart + s - gap2s) +1   
       else :
-        cg_astart = astart + s - 2 -gap2s
-        cg_aend = astart + e - 2 -gap2e
+        cg_astart = astart + s - 1 -gap2s
+        cg_aend = astart + e - 1 -gap2e
 
       assert(cg_astart >= 0)
       if( cg_aend > cg_astart):
