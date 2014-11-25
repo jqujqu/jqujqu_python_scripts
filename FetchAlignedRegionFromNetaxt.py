@@ -45,8 +45,8 @@ def process_block(NetAxt, line, out, achromsizes):
   L = len(seq1)
   achrsize = achromsizes[AChr]
   if AStrand == '-' :
-    astart = achrsize - int(AEnd) +1 # BED file tradition coordinates for di-nucleotide
-    aend = achrsize - int(AStart) +1
+    astart = achrsize - int(AEnd)
+    aend = achrsize - int(AStart)
 
   i = 0
 
@@ -55,9 +55,8 @@ def process_block(NetAxt, line, out, achromsizes):
     if match :
       s = match.start() + i
       e = match.end() + i
-      gap = seq2[0:i].count('-')
-      seg_astart = astart + i - 1 -gap
-      seg_aend = astart + s - 1 - gap
+      seg_astart = astart + i - seq2[0:i].count('-')
+      seg_aend = astart + s - seq2[0:s].count('-')
       out.write(AChr + '\t' + str(seg_astart) + '\t'+ str(seg_aend)+ '\tX\t0\t+\n')
       i = e
     else: return
