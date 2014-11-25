@@ -44,10 +44,6 @@ def process_block(NetAxt, line, out, achromsizes):
   aend = int(AEnd)
   L = len(seq1)
   achrsize = achromsizes[AChr]
-  if AStrand == '-' :
-    astart = achrsize - int(AEnd)
-    aend = achrsize - int(AStart)
-
   i = 0
 
   while i < L :
@@ -57,6 +53,9 @@ def process_block(NetAxt, line, out, achromsizes):
       e = match.end() + i
       seg_astart = astart + i - seq2[0:i].count('-')
       seg_aend = astart + s - seq2[0:s].count('-')
+      if AStrand == '-' :
+        seg_astart = achrsize - (astart + s - seq2[0:s].count('-')) + 1  
+        seg_aend = achrsize - (astart + i - seq2[0:i].count('-')) + 1
       out.write(AChr + '\t' + str(seg_astart) + '\t'+ str(seg_aend)+ '\tX\t0\t+\n')
       i = e
     else: return
