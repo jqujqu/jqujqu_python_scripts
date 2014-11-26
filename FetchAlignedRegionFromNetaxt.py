@@ -48,6 +48,7 @@ def process_block(NetAxt, line, out, achromsizes):
 
   while i < L :
     match = re.search('-+', seq1[i:])
+    
     if match :
       s = match.start() + i
       e = match.end() + i
@@ -56,10 +57,19 @@ def process_block(NetAxt, line, out, achromsizes):
       if AStrand == '-' :
         seg_astart = achrsize - (astart + s - seq2[0:s].count('-')) + 1  
         seg_aend = achrsize - (astart + i - seq2[0:i].count('-')) + 1
-      out.write(AChr + '\t' + str(seg_astart) + '\t'+ str(seg_aend)+ '\tX\t0\t+\n')
       i = e
-    else: return
-  return
+    else: 
+      seg_astart = astart + i - seq2[0:i].count('-')
+      seg_aend = aend
+      if AStrand == '-' :
+        seg_astart = achrsize - aend + 1  
+        seg_aend = achrsize - (astart + i - seq2[0:i].count('-')) + 1
+      i = L
+      
+    out.write(AChr + '\t' + str(seg_astart) + '\t'+ str(seg_aend)+ '\tX\t0\t+\n')
+  
+  
+return
 
 
 def main():
