@@ -52,15 +52,15 @@ def process_block(NetAxt, line, out, achromsizes):
     if match :
       s = match.start() + i
       e = match.end() + i
-      seg_astart = astart + i - seq2[0:i].count('-')
-      seg_aend = astart + s - seq2[0:s].count('-') +1
+      seg_astart = astart + i - seq2[0:i].count('-')-1
+      seg_aend = astart + s - seq2[0:s].count('-') 
       if AStrand == '-' :
         seg_astart = achrsize - (astart + s - seq2[0:s].count('-'))   
         seg_aend = achrsize - (astart + i - seq2[0:i].count('-')) + 1
       i = e
     else: 
-      seg_astart = astart + i - seq2[0:i].count('-')
-      seg_aend = aend +1
+      seg_astart = astart + i - seq2[0:i].count('-') -1
+      seg_aend = aend 
       if AStrand == '-' :
         seg_astart = achrsize - aend 
         seg_aend = achrsize - (astart + i - seq2[0:i].count('-')) +1
