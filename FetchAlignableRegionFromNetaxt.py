@@ -49,11 +49,11 @@ def process_block(NetAxt, line, out):
   L = len(seq1)
   i = 0
   while i < L :
+    gap = seq1[0:i].count('-')
     match = re.search('-+', seq2[i:])
     if match : 
       s = match.start() + i
       e = match.end() + i
-      gap = seq1[0:i].count('-')
       seg_pstart = pstart + i - 1 -gap
       seg_pend = pstart + s - 1 - gap
       i = e
