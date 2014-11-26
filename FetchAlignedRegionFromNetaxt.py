@@ -67,9 +67,7 @@ def process_block(NetAxt, line, out, achromsizes):
       i = L
       
     out.write(AChr + '\t' + str(seg_astart) + '\t'+ str(seg_aend)+ '\tX\t0\t+\n')
-  
-  
-return
+  return
 
 
 def main():
