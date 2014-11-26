@@ -56,9 +56,12 @@ def process_block(NetAxt, line, out):
       gap = seq1[0:i].count('-')
       seg_pstart = pstart + i - 1 -gap
       seg_pend = pstart + s - 1 - gap
-      out.write(PChr + '\t' + str(seg_pstart) + '\t'+ str(seg_pend)+ '\tX\t0\t+\n')  
       i = e
-    else: return
+    else: 
+      seg_pstart = pstart + i - gap -1
+      seg_pend = pend  
+      i = L
+    out.write(PChr + '\t' + str(seg_pstart) + '\t'+ str(seg_pend)+ '\tX\t0\t+\n')
   return 
 
 
