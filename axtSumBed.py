@@ -42,14 +42,17 @@ def read_block(NetAxt):
 def process_block(NetAxt, line, achromsizes, out):
   [seq1, seq2] =  read_block(NetAxt)
   [AlignNum, PChr, PStart, PEnd, AChr, AStart, AEnd, AStrand, Bscore] = line.split()
+
   achrsize = achromsizes[AChr]
   pstart = int(PStart)
   pend = int(PEnd)
-  astart = int(AStart)
-  aend = int(AEnd)
-  if AStrand == '-' : 
-    astart = achrsize - aend +1   # BED file tradition coordinates for di-nucleotide
-    aend = achrsize - astart  +1   
+  if AStrand == '+':
+    astart = int(AStart)
+    aend = int(AEnd)
+  else : 
+    astart = achrsize - int(AEnd) +1   # BED file tradition coordinates for di-nucleotide
+    aend = achrsize - int(AStart)  +1   
+
 
   L = len(seq1)
   nmatch = 0
