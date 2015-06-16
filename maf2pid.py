@@ -1,3 +1,4 @@
+#!/home/rcf-40/jqu/panfs/tools/Python-2.7.8/python
 """ 
   maf2pid
   Compute PID (percentage identity )for give genomic intervals (in hg19)

@@ -1,3 +1,4 @@
+#!/home/rcf-40/jqu/panfs/tools/Python-2.7.8/python
 """
   Make MafIndex file from maf file 
   Pre-requisite: 
