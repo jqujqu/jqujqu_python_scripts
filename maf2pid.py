@@ -100,7 +100,7 @@ def main():
   [species, pairwise] = make_pair_names(args.splst)
 
   fout = open(args.output, 'w')
-  header = "#chrom\tstart\tend"
+  header = "#chrom\tstart\tend\tpme"
   for i in pairwise :
     header += "\t"+i
   fout.write( header + "\n")
