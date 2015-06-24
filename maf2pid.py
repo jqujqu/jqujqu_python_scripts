@@ -100,7 +100,7 @@ def main():
   [species, pairwise] = make_pair_names(args.splst)
 
   fout = open(args.output, 'w')
-  header = "#chrom\tstart\tend"
+  header = "#chrom\tstart\tend\tpme"
   for i in pairwise :
     header += "\t"+i
   fout.write( header + "\n")
@@ -129,7 +129,7 @@ def main():
       for pw in pairwise :
         if pw not in PIDscores :
           PIDscores[pw] = -1
-      fout.write(chrom + "\t" + str(starts[k]) + "\t" + str(ends[k]) + "\t" + names[k])
+      fout.write(chrom + "\t" + str(starts[k]) + "\t" + str(ends[k]) + "\tpme_" + names[k])
       for pw in pairwise :
         fout.write("\t"+ "{:.5f}".format(PIDscores[pw]))
       fout.write("\n")
