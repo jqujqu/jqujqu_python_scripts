@@ -310,7 +310,9 @@ def main():
           end = start +1
           strand = MA[0].strand[:1]
           if strand == '-' :
-            [end, start] = [MA[0].srcSize - start, MA[0].srcSize - end ]
+            [end, start] = [MA[0].srcSize - start+1, MA[0].srcSize - end +1 ]
+          else :
+            [start, end] = [start -1, end -1]
           if len(mut) ==1 : 
             name = s[pidx[spid]]+"="+s[spid] 
             score = spid       
