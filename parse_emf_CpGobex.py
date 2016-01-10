@@ -173,7 +173,7 @@ def all_identical(seq, labels):
   return True
 
 def obex(seq) :
-  GC=1.0*(seq.count('G') + seqs.count('C'))/len(seq)
+  GC=1.0*(seq.count('G') + seq.count('C'))/len(seq)
   cpg =  1.0*(seq.count('CG'))/(len(seq)-1)
   obex = cpg*4/(GC*GC)
   return obex
@@ -210,11 +210,11 @@ def process_alignment(file_obj, seq_headers, labels, parent_labels, cpgout) :
 
 
 def main():
-  parser =  argparse.ArgumentParser(description='Mutations from EPO compara emf file')
+  parser =  argparse.ArgumentParser(description='CpG ob/ex from EPO compara emf file')
   parser.add_argument("-o", "--outfile", help="name of output file (BED format)")
   parser.add_argument('emf', help='emf file (gzipped ok)')
   args = parser.parse_args()
-  cpgout = open(args.outfile+".cpg_counts.txt", 'w')
+  cpgout = open(args.outfile+".cpg_obex.bed", 'w')
   if args.emf[-3:] == ".gz" :
     emf = gzip.open(args.emf, 'r')
   else :
