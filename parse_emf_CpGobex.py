@@ -130,7 +130,7 @@ def parent_index(seq_headers, labels) :
   ancestors = []
   for i in labels : 
     if seq_headers["species"][i] == "ancestral_sequences" :
-      ancestors.append(seq_headers["chrom"][i].split('_')[2])
+      ancestors.append(int(seq_headers["chrom"][i].split('_')[2]))
   ancestor_sorted_idx = list(reversed(sorted(range(len(ancestors)), 
                                              key=lambda k: ancestors[k]))) # descending
   for i in range(len(ancestor_sorted_idx)) :
