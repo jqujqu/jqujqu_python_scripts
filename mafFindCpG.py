@@ -24,13 +24,17 @@ def readMafBlock(f) :
   line = f.readline()
   while len(line) and not isBlockStart(line):
     line = f.readline()
+  score = 0
+  for field in line.split() :
+    if field[:6] == "score=" :
+      score = float(field[6:])
   seqlines =[]
   line = f.readline()
   while (line != '\n') :
     if isSequence(line):
       seqlines.append(line)
     line = f.readline()
-  return seqlines
+  return (seqlines, score)
 
 def countGap(seq) :
   gaps = [1 if x == '-' else 0 for x in seq]
@@ -62,7 +66,7 @@ def peek_line(f):
   f.seek(pos)
   return line
 
-def parse_CpG_pos(alignment, output) :
+def parse_CpG_pos(alignment, score, output) :
   """
   alignment is a list of SeqRec
   """
@@ -87,10 +91,10 @@ def parse_CpG_pos(alignment, output) :
           Grefpos = alignment[0].srcSize - Grefpos -1
       if not (isGap(alignment[0].text[start_in_seq]) and
               isGap(alignment[0].text[end_in_seq])) :
-        output.write( "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"%(alignment[i].src,
+        output.write( "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"%(alignment[i].src,
         min(Cpos,Gpos), max(Cpos, Gpos), m.group(0), alignment[i].strand,
         alignment[0].src, min(Crefpos,Grefpos), max(Crefpos, Grefpos),
-        alignment[0].text[m.start():m.end()], alignment[0].strand) + '\n')
+        alignment[0].text[m.start():m.end()], alignment[0].strand, score) + '\n')
 
 
 ###############################################################################
@@ -113,10 +117,10 @@ def main():
   alignments = []
   while len(line):
     alignment =[]
-    seq_lines = readMafBlock(f)
+    (seq_lines, score) = readMafBlock(f)
     for seq in seq_lines :
       alignment.append(SeqRec(seq))
-      parse_CpG_pos(alignment, out)
+      parse_CpG_pos(alignment, score, out)
     line = peek_line(f)
   f.close()
   out.close()
