@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import gzip
 import sys
 import os
 import re
@@ -132,8 +133,8 @@ def main():
       (key, val) = sizeline.split()
       achromsizes[key] = int(val)
 
+  axtnet = gzip.open(args.AxtNet, 'r') if args.AxtNet[-2:]=="gz" else open(args.AxtNet, 'r')
   out = open(args.outfile, 'w')
-  axtnet = open(args.AxtNet, 'r')
     
   line = axtnet.readline()
   while is_header(line):
