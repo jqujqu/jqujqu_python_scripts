@@ -2,6 +2,7 @@
 import gzip 
 import sys
 import argparse
+import re
 
 """
 parse EPO internal node names
@@ -141,14 +142,17 @@ class PhyloTree:
 maf parsing
 """
 def is_BlockStart(s):
-  return s.split()[0] == 'a'
+  return s[0] == 'a'
 
 def is_Sequence(s) :
-  return s.split()[0]=='s'
+  return s[0] == 's'
+
+def is_header(s) :
+  return s[0] == '#'
 
 def read_block_maf(f) :
   line = f.readline()
-  while len(line) and not is_BlockStart(line):
+  while len(line.strip()) and not is_BlockStart(line):
     line = f.readline()
   seqlines =[]
   line = f.readline()
@@ -158,16 +162,35 @@ def read_block_maf(f) :
     line = f.readline()
   return seqlines
 
+
+def mask_CpG(seq) :
+  newseq = ""
+  starts = [m.start() for m in re.finditer('C-*G', seq)]
+  ends = [m.end() for m in re.finditer('C-*G', seq)]
+  if len(starts) :
+    newseq = newseq + seq[:starts[0]]
+    for j in range(len(starts)-1) :
+      newseq = newseq + "N" + "-"*(ends[j] - starts[j]-2) + "N" + seq[ends[j]:starts[j+1]]
+    newseq = newseq + "N" + "-"*(ends[-1] - starts[-1]-2) + "N"
+    newseq = newseq + seq[ends[-1]:]
+  else :
+    newseq=seq
+  assert len(newseq)==len(seq)
+  return newseq
+
 class Seq_Rec:
   """
   s hg16.chr7    27707221 13 + 158545518 gcagctgaaaaca
   """
-  def __init__(self, seq):
+  def __init__(self, seq, maskCpG):
     s = seq.split()
     self.id = s[1]
     self.strand = s[4]
     self.srcSize = int(s[5])
-    self.seq = s[6].upper()
+    if maskCpG:
+      self.seq = mask_CpG(s[6].upper())
+    else :
+      self.seq = s[6].upper()
     self.size = int(s[3])
     self.start = int(s[2])
     self.stdstart = 0
@@ -186,7 +209,7 @@ def filter_alignment(alignment, target_species) :
   internal = [ nodes[i] for i in range(1,len(nodes), 2) ]
   leaves = [ nodes[i] for i in range(0,len(nodes), 2) ]
   #mask non-target leaf species name
-  for  i in range(n):
+  for i in range(n):
     if leaves[i].split(".")[0] not in species :
       leaves[i] = ""
   #endfor
@@ -199,6 +222,7 @@ def filter_alignment(alignment, target_species) :
     if i.id in filtered_species :
       filtered_alignment.append(i)
   return filtered_alignment
+
 
 def get_MA_column(alignment, i) :
   s = ''
@@ -235,6 +259,16 @@ def get_mutation(s, entryid, cidx) :
       m += get_mutation(s, id, cidx)
     return m
 
+def to_interval(base, shifts) :
+  starts = [base+shifts[0]]
+  ends = [base+shifts[0]+1]
+  for i in shifts[1:] : 
+    if base + i == ends[-1] :
+      ends[-1] += 1
+    else :
+      starts.append(base + i)
+      ends.append(base + i + 1)
+  return (starts, ends)
 
 
 species = ["homo_sapiens", "pan_troglodytes", "gorilla_gorilla", 
@@ -245,24 +279,31 @@ def main():
   parser = argparse.ArgumentParser(description='report Mutation sites in aligned positions', 
                                    prog='EPOmaf2Mut')
   parser.add_argument('--mafgz', dest='maffilegz', help='gzipped epo maf file')
+  parser.add_argument("--maskCpG", default=False, action="store_true" , help="Flag to mask CpG sites")
   parser.add_argument('--output', dest='output', help='output file')
-  if len(sys.argv) < 2:
+  parser.add_argument('--alnout', dest='alnout', help='aligned region bed output')
+  if len(sys.argv) < 4:
     parser.print_help()
     sys.exit(1)
-
+  
   args = parser.parse_args()
-
-  outfile=args.output # "EPO.chr1_1.nongap_mutations.bed"
-  maffilegz=args.maffilegz  #"Compara.17_eutherian_mammals_EPO.chr1_1.maf.gz"
-
+  
+  outfile = args.output # "EPO.chr1_1.nongap_mutations.bed"
+  alnoutfile = args.alnout
+  maffilegz = args.maffilegz  #"Compara.17_eutherian_mammals_EPO.chr1_1.maf.gz"
+  maskCpG = args.maskCpG 
+  
   f = gzip.open(maffilegz, 'r')
-  line =  peek_line(f)
+  line = peek_line(f)
+  while is_header(line) :
+    line = f.readline()  
+    line = peek_line(f);
   alignments = []
   while len(line):
     alignment =[]
     seq_lines = read_block_maf(f) 
     for seq in seq_lines :
-      alignment.append(Seq_Rec(seq))
+      alignment.append(Seq_Rec(seq, maskCpG))
     naln = filter_alignment(alignment, species)
     if len(naln) == 2*len(species)-1 :
       alignments.append( naln )
@@ -288,47 +329,56 @@ def main():
   block_mut_rec["multiple_hits"] = 0
   block_mut_rec["contain_gap"] = 0
 
-  i = 0
-  count = 0
-  MA = alignments[0]
-  ALNsize = len(MA[0].seq)
-
   out = open(outfile, 'w')
-  while i < ALNsize:
-    s = get_MA_column(MA, i)
-    if s[0] != "-" :
-      count += 1
-      if s.count('-') == 0 and s.count('N') == 0  :
-        mut = get_mutation(s, rootid, cidx)
-        if len(mut) == 0:
-          block_mut_rec["identical"] = block_mut_rec["identical"]+1
-        else :
-          spid = mut[0]
-          block_mut_rec[spid] = block_mut_rec[spid]+1
-          ref = MA[0].id
-          start = MA[0].start + count
-          end = start +1
-          strand = MA[0].strand[:1]
-          if strand == '-' :
-            [end, start] = [MA[0].srcSize - start+1, MA[0].srcSize - end +1 ]
+  alnout = open(alnoutfile, 'w')
+  for MA in alignments :
+    ALNsize = len(MA[0].seq)
+    validpos = []
+    i = 0
+    count = 0
+    while i < ALNsize:
+      s = get_MA_column(MA, i)      
+      if s[0] != "-" :
+        count += 1
+        if s.count('-') == 0 and s.count('N') == 0  :
+          if (MA[0].strand[0] == '+') :
+            validpos.append(count-1)
           else :
-            [start, end] = [start -1, end -1]
-          if len(mut) ==1 : 
-            name = s[pidx[spid]]+"="+s[spid] 
-            score = spid       
-            out.write( "%s\t%s\t%s\t%s\t%s\t%s"%(ref, start, end, name, score, strand) + '\n')
+            validpos.append(MA[0].size - count-1)
+          mut = get_mutation(s, rootid, cidx)
+          if len(mut) == 0:
+            block_mut_rec["identical"] = block_mut_rec["identical"]+1
           else :
-            block_mut_rec["multiple_hits"] = block_mut_rec["multiple_hits"]+1
-            for spid in mut :
+            spid = mut[0]
+            block_mut_rec[spid] = block_mut_rec[spid] + 1
+            ref = MA[0].id
+            start = MA[0].start + count
+            end = start +1
+            strand = MA[0].strand[:1]
+            if strand == '-' :
+              [end, start] = [MA[0].srcSize - start + 1, MA[0].srcSize - end + 1 ]
+            else :
+              [start, end] = [start -1, end -1]
+            if len(mut) ==1 : 
               name = s[pidx[spid]]+"="+s[spid] 
-              score = spid
+              score = spid       
               out.write( "%s\t%s\t%s\t%s\t%s\t%s"%(ref, start, end, name, score, strand) + '\n')
-      else :
-        block_mut_rec["contain_gap"] = block_mut_rec["contain_gap"]+1
-    i += 1
-
+            else :
+              block_mut_rec["multiple_hits"] = block_mut_rec["multiple_hits"]+1
+              for spid in mut :
+                name = s[pidx[spid]]+"="+s[spid] 
+                score = spid
+                out.write( "%s\t%s\t%s\t%s\t%s\t%s"%(ref, start, end, name, score, strand) + '\n')
+        else :
+          block_mut_rec["contain_gap"] = block_mut_rec["contain_gap"]+1
+      i += 1
+    (l, r) = to_interval(MA[0].stdstart, sorted(list(set(validpos))))
+    for j in range(len(l)) :
+      alnout.write("%s\t%s\t%s\t%s\t%s\t%s"%(MA[0].id, l[j], r[j], "ALN", r[j]-l[j], MA[0].strand[0]) + '\n'  )
+  
   f.close()
   out.close()
+  alnout.close()
 
 
 if __name__ == "__main__":
